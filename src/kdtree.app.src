@@ -1,12 +1,10 @@
 {application, kdtree,
  [
-  {description, ""},
-  {vsn, "1"},
-  {registered, [kdtree_worker]},
+  {description, "Simple K-D Tree, specific for 2D GPS coordinates"},
+  {vsn, "0.1"},
   {applications, [
                   kernel,
                   stdlib
                  ]},
-  {mod, {kdtree_app, []}},
   {env, []}
  ]}.

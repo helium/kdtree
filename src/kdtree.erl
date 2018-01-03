@@ -1,6 +1,4 @@
--module(kdtree_worker).
-
--behavior(gen_server).
+-module(kdtree).
 
 -record(node, {
           location,
@@ -13,46 +11,12 @@
 % in miles
 -define(EARTHRADIUS, 3961).
 
--export([build/1, nearest/1, nearby/2]).
--export([init/1, start_link/0, handle_cast/2, handle_call/3]).
+-export([build/1, nearby/3, nearest/2]).
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
-init([]) ->
-    {ok, []}.
-
-% clienside functions
 -spec build(list()) -> #node{}.
 build(CoordinateList) ->
-    gen_server:call(?MODULE, {build, CoordinateList}).
+    build(CoordinateList, 0).
 
--spec nearest(tuple()) -> tuple().
-nearest(Coordinate) ->
-    gen_server:call(?MODULE, {nearest, Coordinate}).
-
--spec nearby(tuple(), non_neg_integer()) -> tuple().
-nearby(Coordinate, Range) ->
-    gen_server:call(?MODULE, {nearby, Coordinate, Range}).
-
-% callback functions
-handle_call(Msg, _From, State) ->
-    case Msg of
-        {build, List} ->
-            Tree = build(List, 0),
-            {reply, Tree, Tree};
-        {nearest, Coordinate} ->
-            Nearest = nearest(State, Coordinate),
-            {reply, Nearest, State};
-        {nearby, Coordinate, Range} ->
-            Nearby = nearby(State, Coordinate, Range),
-            {reply, Nearby, State}
-    end.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-% private functions
 -spec build(list(), non_neg_integer()) -> undefined | #node{}.
 build(CoordinateList, _Depth) when length(CoordinateList) == 0 ->
     undefined;
