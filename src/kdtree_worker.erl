@@ -13,7 +13,7 @@
 % in miles
 -define(EARTHRADIUS, 3961).
 
--export([build/1, nearest/1]).
+-export([build/1, nearest/1, nearby/2]).
 -export([init/1, start_link/0, handle_cast/2, handle_call/3]).
 
 start_link() ->
@@ -31,6 +31,10 @@ build(CoordinateList) ->
 nearest(Coordinate) ->
     gen_server:call(?MODULE, {nearest, Coordinate}).
 
+-spec nearby(tuple(), non_neg_integer()) -> tuple().
+nearby(Coordinate, Range) ->
+    gen_server:call(?MODULE, {nearby, Coordinate, Range}).
+
 % callback functions
 handle_call(Msg, _From, State) ->
     case Msg of
@@ -39,7 +43,10 @@ handle_call(Msg, _From, State) ->
             {reply, Tree, Tree};
         {nearest, Coordinate} ->
             Nearest = nearest(State, Coordinate),
-            {reply, Nearest, State}
+            {reply, Nearest, State};
+        {nearby, Coordinate, Range} ->
+            Nearby = nearby(State, Coordinate, Range),
+            {reply, Nearby, State}
     end.
 
 handle_cast(_Msg, State) ->
@@ -76,12 +83,10 @@ nearest(Node, Coordinate) ->
     nearest(Node, Coordinate, Node#node.location, ?MAXDISTANCE, 0).
 
 -spec nearest(#node{}, tuple(), tuple(), non_neg_integer(), non_neg_integer()) -> undefined | tuple().
+nearest(undefined, _Coordinate, Closest, MinDist, _Depth) ->
+    {Closest, MinDist};
 nearest(Node, Coordinate, Closest, MinDist, Depth) ->
-    Axis = case Depth rem tuple_size(Coordinate) of
-               0 -> 1;
-               1 -> 2
-           end,
-
+    Axis = get_axis(Depth, Coordinate),
     Distance = haversine_distance(Coordinate, Node#node.location),
     {NewClosest, NewMinDist} = case Distance < MinDist andalso Coordinate /= Node#node.location of
                                    true ->
@@ -89,19 +94,49 @@ nearest(Node, Coordinate, Closest, MinDist, Depth) ->
                                    false ->
                                        {Closest, MinDist}
                                end,
-
-    case {get_dimension(Axis, Coordinate) < get_dimension(Axis, Node#node.location), Node#node.left, Node#node.right} of
+    NodeDim = get_dimension(Axis, Node#node.location),
+    PointDim = get_dimension(Axis, Coordinate),
+    case {PointDim > NodeDim, Node#node.left, Node#node.right} of
         {_, undefined, undefined} ->
             {NewClosest, NewMinDist};
-        {true, undefined, _} ->
-            {NewClosest, NewMinDist};
-        {true, Left, _} ->
+        {true, undefined, Right} ->
+            nearest(Right, Coordinate, NewClosest, NewMinDist, Depth + 1);
+        {true, Left, Right} ->
+            {NewerClosest, NewerMinDist} = nearest(Left, Coordinate, NewClosest, NewMinDist, Depth + 1),
+            case (PointDim + MinDist) >= NodeDim of
+                true -> nearest(Right, Coordinate, NewerClosest, NewerMinDist, Depth + 1);
+                false -> {NewerClosest, NewerMinDist}
+            end;
+        {false, Left, undefined} ->
             nearest(Left, Coordinate, NewClosest, NewMinDist, Depth + 1);
-        {false, _, undefined} ->
-            {NewClosest, NewMinDist};
-        {false, _, Right} ->
-            nearest(Right, Coordinate, NewClosest, NewMinDist, Depth + 1)
+        {false, Left, Right} ->
+            {NewerClosest, NewerMinDist} = nearest(Right, Coordinate, NewClosest, NewMinDist, Depth + 1),
+            case (PointDim - MinDist) =< NodeDim of
+                true -> nearest(Left, Coordinate, NewClosest, NewMinDist, Depth + 1);
+                false -> {NewerClosest, NewerMinDist}
+            end
     end.
+
+-spec nearby(#node{} | undefined, tuple(), tuple()) -> undefined | list().
+nearby(undefined, _Coordinate, _Range) ->
+    undefined;
+nearby(Node, Coordinate, Range) ->
+    nearby(Node, Coordinate, Node#node.location, Range, 0, []).
+
+-spec nearby(#node{} | undefined, tuple(), tuple(), non_neg_integer(), non_neg_integer(), list()) -> undefined | list().
+nearby(undefined, _Coordinate, _NearbyCoordinate, _Range, _Depth, List) ->
+    List;
+nearby(Node, Coordinate, NearbyCoordinate, Range, Depth, List) ->
+    Distance = haversine_distance(Coordinate, Node#node.location),
+    NewList = case Distance < Range andalso Coordinate /= Node#node.location of
+                  true ->
+                      List ++ [Node#node.location];
+                  false ->
+                      List
+              end,
+
+    nearby(Node#node.left, Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) ++
+        (nearby(Node#node.right, Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) -- NewList).
 
 -spec get_dimension(1 | 2, tuple()) -> float().
 get_dimension(Axis, Coordinate) ->
@@ -115,3 +150,10 @@ haversine_distance({Lat1, Long1}, {Lat2, Long2}) ->
     A = math:pow(math:sin(DeltaLat/2), 2) + math:cos(Lat1 * V) * math:cos(Lat2 * V) * math:pow(math:sin(DeltaLong/2), 2),
     C = 2 * math:atan2(math:sqrt(A), math:sqrt(1-A)),
     ?EARTHRADIUS * C.
+
+-spec get_axis(non_neg_integer(), tuple()) -> 1 | 2.
+get_axis(Depth, Coordinate) ->
+    case Depth rem tuple_size(Coordinate) of
+        0 -> 1;
+        1 -> 2
+    end.
