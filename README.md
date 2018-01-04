@@ -8,6 +8,7 @@
 #### Implementation Details:
 * Uses [haversine distance](https://en.wikipedia.org/wiki/Haversine_formula) to approximate the distance between two GPS coordinates.
 * Building a tree from a list of coordinates takes O(nlog(n)) time complexity.
+* I've added a placeholder on the node which allows you to put in any value/data. I use it to add PIDs as an example.
 * Search takes O(log(n)) time complexity.
 
 #### Example:
