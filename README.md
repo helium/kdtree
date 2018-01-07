@@ -57,3 +57,7 @@
   #Ref<0.3804993279.2739142657.109430>},
  {{51.6675,-121.29361},#Ref<0.3804993279.2739142657.109431>}]
 ```
+
+#### TODO
+* Use [Vincenty's formulae](https://en.wikipedia.org/wiki/Vincenty%27s_formulae) for calculating distance.
+* Add function to print the tree.
