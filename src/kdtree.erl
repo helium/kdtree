@@ -14,7 +14,7 @@
 % in miles
 -define(EARTHRADIUS, 3961).
 
--export([from_list/1, haversine_distance/2, nearby/3, nearest/2, to_list/1]).
+-export([from_list/1, haversine_distance/2, nearby/3, nearest/2, to_list/1, get_value/2]).
 
 -spec from_list([{coordinate(), any()}, ...]) -> #node{}.
 from_list(CoordinateList) when length(CoordinateList) > 0 ->
@@ -101,6 +101,20 @@ nearby(Node, Coordinate, NearbyCoordinate, Range, Depth, List) ->
 
     nearby(Node#node.left, Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) ++
         (nearby(Node#node.right, Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) -- NewList).
+
+-spec get_value(#node{} | undefined, coordinate()) -> undefined | any().
+get_value(undefined, _Coordinate) ->
+    undefined;
+get_value(Node, Coordinate) ->
+    case Coordinate == Node#node.location of
+        true ->
+            Node#node.value;
+        false ->
+            case get_value(Node#node.left, Coordinate) of
+                undefined -> get_value(Node#node.right, Coordinate);
+                Value -> Value
+            end
+    end.
 
 -spec get_dimension(1 | 2, coordinate()) -> float().
 get_dimension(Axis, Coordinate) ->
