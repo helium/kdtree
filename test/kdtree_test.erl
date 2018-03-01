@@ -31,3 +31,18 @@ basic_test() ->
     ?assert(length(Nearby) >= 1),
     % check identity
     ?assertEqual(lists:usort(List), lists:usort(kdtree:to_list(Tree))).
+
+value_test() ->
+    List = [{{48.55321,-125.02235}, make_ref()},
+            {{45.26664,-66.06525}, make_ref()},
+            {{51.64982,-121.28594}, make_ref()},
+            {{51.6675,-121.29361}, 10},
+            {{47.811,-53.97733}, make_ref()},
+            {{51.685,-121.29861}, make_ref()},
+            {{63.89335,-139.1991}, make_ref()},
+            {{51.84983,-121.60273}, make_ref()}],
+    % build a kdtree
+    Tree = kdtree:from_list(List),
+    Value = kdtree:get_value(Tree, {51.6675,-121.29361}),
+    io:format("V: ~p~n", [Value]),
+    ?assertEqual(10, Value).
