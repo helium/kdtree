@@ -1,7 +1,7 @@
 {application, kdtree,
  [
   {description, "Simple K-D Tree, specific for 2D GPS coordinates"},
-  {vsn, "0.0.1"},
+  {vsn, "1.0.0"},
   {applications, [
                   kernel,
                   stdlib
