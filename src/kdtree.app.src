@@ -1,10 +1,15 @@
 {application, kdtree,
  [
   {description, "Simple K-D Tree, specific for 2D GPS coordinates"},
-  {vsn, "0.1"},
+  {vsn, "0.0.1"},
   {applications, [
                   kernel,
                   stdlib
                  ]},
-  {env, []}
+  {env, []},
+
+  % hex.pm configuration
+  {licenses, ["Apache 2.0"]},
+  {maintainers, ["Helium"]},
+  {links, [{"Github", "https://github.com/helium/kdtree"}]}
  ]}.

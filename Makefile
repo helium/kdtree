@@ -1,14 +1,6 @@
-.PHONY: compile rel eqc test typecheck
+.PHONY: compile rel test typecheck
 
 REBAR=./rebar3
-
-OS_NAME=$(shell uname -s)
-
-ifeq (${OS_NAME},FreeBSD)
-make="gmake"
-else
-MAKE="make"
-endif
 
 compile:
 	$(REBAR) compile
