@@ -1,15 +1,29 @@
-### [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) implementation in Erlang
+kdtree
+=====
 
-#### Motivation:
-* This is the first library I've tried to build in Erlang.
-* I couldn't really find any implementation in pure Erlang of a simple k-d tree for determining nearby GPS coordinates.
-* This implementation is correct as far as I can tell, mistakes/suggestions are very welcome.
+Erlang implementation of kdtree
 
-#### Implementation Details:
+Implementation:
+-----
 * Uses [haversine distance](https://en.wikipedia.org/wiki/Haversine_formula) to approximate the distance between two GPS coordinates.
 * Building a tree from a list of coordinates takes O(nlog(n)) time complexity.
 * I've added a placeholder on the node which allows you to put in any value/data. I use it to add PIDs as an example.
 * Search takes O(log(n)) time complexity.
+
+Build
+-----
+
+    $ make
+
+Test
+-----
+
+    $ make test
+
+Typecheck
+-----
+
+    $ make typecheck
 
 #### Example:
 ```Erlang
@@ -58,6 +72,6 @@
  {{51.6675,-121.29361},#Ref<0.3804993279.2739142657.109431>}]
 ```
 
-#### TODO
-* Use [Vincenty's formulae](https://en.wikipedia.org/wiki/Vincenty%27s_formulae) for calculating distance.
-* Add function to print the tree.
+References
+-----
+[k-d tree](https://en.wikipedia.org/wiki/K-d_tree)
