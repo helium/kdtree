@@ -8,6 +8,7 @@
          }).
 
 -type coordinate() :: {float(), float()}.
+-type tree() :: #node{}.
 
 % greater than max distance between two points on earth
 -define(MAXDISTANCE, 13000).
@@ -22,16 +23,16 @@
          to_list/1,
          get_value/2]).
 
--spec from_indices([{h3:h3_index(), any()}, ...]) -> #node{}.
+-spec from_indices([{h3:h3_index(), any()}, ...]) -> tree().
 from_indices(Indices) when length(Indices) > 0->
     CoordinateList = [{h3:to_geo(I), V} || {I, V} <- Indices],
     from_list(CoordinateList).
 
--spec from_list([{coordinate(), any()}, ...]) -> #node{}.
+-spec from_list([{coordinate(), any()}, ...]) -> tree().
 from_list(CoordinateList) when length(CoordinateList) > 0 ->
     from_list(CoordinateList, 0).
 
--spec from_list([{coordinate(), any()}], non_neg_integer()) -> #node{}.
+-spec from_list([{coordinate(), any()}], non_neg_integer()) -> tree().
 from_list([], _Depth) ->
     undefined;
 from_list([{Coordinate, Value}], _Depth) ->
