@@ -1,7 +1,5 @@
 -module(kdtree).
 
--type coordinate() :: {float(), float()}.
-
 -record(node, {
           location :: coordinate(),
           value :: any(),
@@ -9,12 +7,25 @@
           right :: #node{} | undefined
          }).
 
+-type coordinate() :: {float(), float()}.
+
 % greater than max distance between two points on earth
 -define(MAXDISTANCE, 13000).
 % in miles
 -define(EARTHRADIUS, 3961).
 
--export([from_list/1, haversine_distance/2, nearby/3, nearest/2, to_list/1, get_value/2]).
+-export([from_list/1,
+         from_indices/1,
+         haversine_distance/2,
+         nearby/3,
+         nearest/2,
+         to_list/1,
+         get_value/2]).
+
+-spec from_indices([{h3:h3_index(), any()}, ...]) -> #node{}.
+from_indices(Indices) when length(Indices) > 0->
+    CoordinateList = [{h3:to_geo(I), V} || {I, V} <- Indices],
+    from_list(CoordinateList).
 
 -spec from_list([{coordinate(), any()}, ...]) -> #node{}.
 from_list(CoordinateList) when length(CoordinateList) > 0 ->
