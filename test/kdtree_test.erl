@@ -34,7 +34,7 @@ basic_test() ->
 
 h3_test() ->
     % random list of h3 indices
-    {ok, [List0]} = file:consult(filename:join(code:priv_dir(kdtree), "indices.txt")),
+    {ok, [List0]} = file:consult(filename:join(code:priv_dir(kdtree), "small.txt")),
     List = [{I, make_ref()} || I <- List0],
     CoordinateList = [{h3:to_geo(I), V} || {I, V} <- List],
     % build a kdtree
