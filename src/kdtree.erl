@@ -5,14 +5,17 @@
 % in miles
 -define(EARTHRADIUS, 3961).
 
--export([from_list/1,
+-export([
+         from_list/1,
          from_indices/1,
          haversine_distance/2,
          nearby/3,
          nearest/2,
          to_list/1,
          get_value/2,
-         add/2]).
+         add/2,
+         remove/2
+        ]).
 
 -spec from_indices([{h3:h3_index(), any()}, ...]) -> treenode:treenode().
 from_indices(Indices) when length(Indices) > 0->
@@ -44,21 +47,21 @@ from_list(CoordinateList, Depth) ->
 
 -spec nearest(treenode:treenode(), treenode:coordinate()) -> {treenode:coordinate(), float()}.
 nearest(TreeNode, Coordinate) ->
-    nearest(TreeNode, Coordinate, treenode:location(TreeNode), ?MAXDISTANCE, 0).
+    nearest(TreeNode, Coordinate, treenode:coordinate(TreeNode), ?MAXDISTANCE, 0).
 
 -spec nearest(treenode:treenode(), tuple(), tuple(), non_neg_integer(), non_neg_integer()) -> tuple().
 nearest(TreeNode, Coordinate, Closest, MinDist, Depth) ->
     Axis = get_axis(Depth, Coordinate),
-    Location  = treenode:location(TreeNode),
+    Coodinate  = treenode:coordinate(TreeNode),
     Value = treenode:value(TreeNode),
-    Distance = haversine_distance(Coordinate, Location),
-    {NewClosest, NewMinDist} = case Distance < MinDist andalso Coordinate /= Location of
+    Distance = haversine_distance(Coordinate, Coodinate),
+    {NewClosest, NewMinDist} = case Distance < MinDist andalso Coordinate /= Coodinate of
                                    true ->
-                                       {{Location, Value}, Distance};
+                                       {{Coodinate, Value}, Distance};
                                    false ->
                                        {Closest, MinDist}
                                end,
-    TreeNodeDim = get_dimension(Axis, Location),
+    TreeNodeDim = get_dimension(Axis, Coodinate),
     PointDim = get_dimension(Axis, Coordinate),
     case {PointDim > TreeNodeDim, treenode:left(TreeNode), treenode:right(TreeNode)} of
         {_, undefined, undefined} ->
@@ -83,30 +86,30 @@ nearest(TreeNode, Coordinate, Closest, MinDist, Depth) ->
 
 -spec nearby(treenode:treenode(), treenode:coordinate(), pos_integer()) -> list().
 nearby(TreeNode, Coordinate, Range) ->
-    nearby(TreeNode, Coordinate, treenode:location(TreeNode), Range, 0, []).
+    nearby(TreeNode, Coordinate, treenode:coordinate(TreeNode), Range, 0, []).
 
 -spec nearby(treenode:treenode() | undefined, treenode:coordinate(), treenode:coordinate(), pos_integer(), non_neg_integer(), list()) -> list().
 nearby(undefined, _Coordinate, _NearbyCoordinate, _Range, _Depth, List) ->
     List;
 nearby(TreeNode, Coordinate, NearbyCoordinate, Range, Depth, List) ->
-    Location = treenode:location(TreeNode),
+    Coodinate = treenode:coordinate(TreeNode),
     Value = treenode:value(TreeNode),
-    Distance = haversine_distance(Coordinate, Location),
-    NewList = case Distance < Range andalso Coordinate /= Location of
+    Distance = haversine_distance(Coordinate, Coodinate),
+    NewList = case Distance < Range andalso Coordinate /= Coodinate of
                   true ->
-                      [{Location, Value} | List];
+                      [{Coodinate, Value} | List];
                   false ->
                       List
               end,
 
     nearby(treenode:left(TreeNode), Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) ++
-        (nearby(treenode:right(TreeNode), Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) -- NewList).
+    (nearby(treenode:right(TreeNode), Coordinate, NearbyCoordinate, Range, Depth + 1, NewList) -- NewList).
 
 -spec get_value(treenode:treenode() | undefined, treenode:coordinate()) -> undefined | any().
 get_value(undefined, _Coordinate) ->
     undefined;
 get_value(TreeNode, Coordinate) ->
-    case Coordinate == treenode:location(TreeNode) of
+    case Coordinate == treenode:coordinate(TreeNode) of
         true ->
             treenode:value(TreeNode);
         false ->
@@ -138,11 +141,19 @@ get_axis(Depth, Coordinate) ->
 
 -spec to_list(treenode:treenode()) -> [{treenode:coordinate(), any()}, ...].
 to_list(TreeNode) ->
-    Location = treenode:location(TreeNode),
+    Coodinate = treenode:coordinate(TreeNode),
     Value = treenode:value(TreeNode),
-    [{Location, Value} | nearby(TreeNode, Location, ?MAXDISTANCE)].
+    [{Coodinate, Value} | nearby(TreeNode, Coodinate, ?MAXDISTANCE)].
 
--spec add(treenode:treenode(), {treenode:coordinate(), any()}) -> treenode:treenode().
+-spec add(treenode:treenode(), treenode:treenode()) -> treenode:treenode().
 add(Tree, NodeToAdd) ->
     List = to_list(Tree),
-    from_list([NodeToAdd | List]).
+    from_list([{treenode:coordinate(NodeToAdd), treenode:value(NodeToAdd)} | List]).
+
+-spec remove(treenode:treenode(), treenode:treenode()) -> treenode:treenode().
+remove(Tree, NodeToRemove) ->
+    OldList = to_list(Tree),
+    io:format("OldList: ~p~n", [OldList]),
+    NewList = proplists:delete(treenode:coordinate(NodeToRemove), OldList),
+    io:format("NewList: ~p~n", [NewList]),
+    from_list(NewList).

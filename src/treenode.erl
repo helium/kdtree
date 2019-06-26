@@ -1,7 +1,7 @@
 -module(treenode).
 
 -record(treenode, {
-          location :: coordinate(),
+          coordinate :: coordinate(),
           value :: any(),
           left :: #treenode{} | undefined,
           right :: #treenode{} | undefined
@@ -10,10 +10,11 @@
 -export([
          new/2,
          new/4,
-         location/1,
+         coordinate/1,
          value/1,
          left/1,
-         right/1
+         right/1,
+         from_h3/2
         ]).
 
 -export_type([coordinate/0, treenode/0]).
@@ -24,7 +25,7 @@
 -spec new(coordinate(), any()) -> treenode().
 new(Coordinate, Value) ->
     #treenode{
-       location=Coordinate,
+       coordinate=Coordinate,
        value=Value,
        left=undefined,
        right=undefined
@@ -33,15 +34,24 @@ new(Coordinate, Value) ->
 -spec new(coordinate(), any(), treenode(), treenode()) -> treenode().
 new(Coordinate, Value, Left, Right) ->
     #treenode{
-       location=Coordinate,
+       coordinate=Coordinate,
        value=Value,
        left=Left,
        right=Right
       }.
 
--spec location(treenode()) -> coordinate().
-location(TreeNode) ->
-    TreeNode#treenode.location.
+-spec from_h3(h3:index(), any()) -> treenode().
+from_h3(H3Index, Value) ->
+    #treenode{
+       coordinate=h3:to_geo(H3Index),
+       value=Value,
+       left=undefined,
+       right=undefined
+      }.
+
+-spec coordinate(treenode()) -> coordinate().
+coordinate(TreeNode) ->
+    TreeNode#treenode.coordinate.
 
 -spec value(treenode()) -> any().
 value(TreeNode) ->
