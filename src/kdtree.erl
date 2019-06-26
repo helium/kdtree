@@ -153,7 +153,5 @@ add(Tree, NodeToAdd) ->
 -spec remove(treenode:treenode(), treenode:treenode()) -> treenode:treenode().
 remove(Tree, NodeToRemove) ->
     OldList = to_list(Tree),
-    io:format("OldList: ~p~n", [OldList]),
     NewList = proplists:delete(treenode:coordinate(NodeToRemove), OldList),
-    io:format("NewList: ~p~n", [NewList]),
     from_list(NewList).
