@@ -8,6 +8,7 @@
          }).
 
 -export([
+         new/1,
          new/2,
          new/4,
          coordinate/1,
@@ -21,6 +22,10 @@
 
 -type coordinate() :: {float(), float()}.
 -type treenode() :: #treenode{}.
+
+-spec new({coordinate(), any()}) -> treenode().
+new({Coordinate, Value}) ->
+    new(Coordinate, Value).
 
 -spec new(coordinate(), any()) -> treenode().
 new(Coordinate, Value) ->
