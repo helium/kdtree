@@ -14,7 +14,8 @@
          to_list/1,
          get_value/2,
          add/2,
-         remove/2
+         remove/2,
+         size/1
         ]).
 
 -spec from_indices([{h3:h3_index(), any()}, ...]) -> treenode:treenode().
@@ -155,3 +156,7 @@ remove(Tree, NodeToRemove) ->
     OldList = to_list(Tree),
     NewList = proplists:delete(treenode:coordinate(NodeToRemove), OldList),
     from_list(NewList).
+
+-spec size(treenode:treenode()) -> non_neg_integer().
+size(Tree) ->
+    length(kdtree:to_list(Tree)).

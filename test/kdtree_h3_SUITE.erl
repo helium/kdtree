@@ -56,10 +56,7 @@ add_test(_Config) ->
     NewTree = kdtree:add(Tree, NewNode),
     ct:pal("NewTree: ~p", [NewTree]),
 
-    %% assert that size of new tree increased by 1
-    NewList = kdtree:to_list(NewTree),
-    ct:pal("NewList: ~p", [NewList]),
-    ?assertEqual(length(NewList), length(OldList) + 1),
+    ?assertEqual(kdtree:size(Tree), kdtree:size(NewTree) - 1),
     ok.
 
 remove_test(_Config) ->
@@ -70,14 +67,12 @@ remove_test(_Config) ->
     ct:pal("Coordinates: ~p", [Coordinates]),
     % build a kdtree
     Tree = kdtree:from_indices(List),
-    OldList = kdtree:to_list(Tree),
     ct:pal("Tree: ~p", [Tree]),
     {RandCoordinate, RandName} = lists:nth(rand:uniform(length(Coordinates)), Coordinates),
     ct:pal("RandCoordinate: ~p, RandName: ~p", [RandCoordinate, RandName]),
 
     NodeToRemove = treenode:new(RandCoordinate, RandName),
     NewTree = kdtree:remove(Tree, NodeToRemove),
-    NewList = kdtree:to_list(NewTree),
 
-    ?assertEqual(length(NewList), length(OldList) - 1),
+    ?assertEqual(kdtree:size(Tree), kdtree:size(NewTree) + 1),
     ok.
